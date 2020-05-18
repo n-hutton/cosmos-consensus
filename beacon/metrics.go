@@ -16,6 +16,8 @@ const (
 // Metrics contains metrics exposed by this package.
 // see MetricsProvider for descriptions.
 type Metrics struct {
+	// Average time for entropy generation
+	AvgEntropyGenTime metrics.Gauge
 	// Number of DKG messages seen in the chain
 	DKGMessagesInChain metrics.Counter
 	// Number of completed DKGs
@@ -31,6 +33,12 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 		labels = append(labels, labelsAndValues[i])
 	}
 	return &Metrics{
+		AvgEntropyGenTime: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: namespace,
+			Subsystem: MetricsSubsystem,
+			Name:      "avg_entropy_gen_time",
+			Help:      "Average time in ms for entropy to be generated once the node decides to generate it",
+		}, labels).With(labelsAndValues...),
 		DKGMessagesInChain: prometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: MetricsSubsystem,
@@ -49,6 +57,7 @@ func PrometheusMetrics(namespace string, labelsAndValues ...string) *Metrics {
 // NopMetrics returns no-op Metrics.
 func NopMetrics() *Metrics {
 	return &Metrics{
+		AvgEntropyGenTime:  discard.NewGauge(),
 		DKGMessagesInChain: discard.NewCounter(),
 		DKGsCompleted:      discard.NewCounter(),
 	}

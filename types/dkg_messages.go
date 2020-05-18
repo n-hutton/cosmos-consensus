@@ -19,15 +19,15 @@ const (
 	DKGReconstructionShare
 	DKGDryRun
 
-	MaxDKGDataSize = 32000 // Max value calculated for committee size of 200
+	MaxDKGDataSize = 65000 // Max value calculated for committee size of 200
 )
 
 // DKGMessage contains DKGData for a particular phase of the DKG
 type DKGMessage struct {
 	Type         DKGMessageType
 	FromAddress  crypto.Address
-	DKGID        int
-	DKGIteration int
+	DKGID        int64
+	DKGIteration int64
 	Data         string
 	ToAddress    crypto.Address
 	Signature    []byte

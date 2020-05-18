@@ -570,13 +570,13 @@ func createBeaconReactor(
 	beaconLogger log.Logger, fastSync bool,
 	blockStore sm.BlockStore,
 	dkgRunner *beacon.DKGRunner,
-	db dbm.DB) (chan types.ComputedEntropy, *beacon.EntropyGenerator, *beacon.Reactor, error) {
+	db dbm.DB) (chan types.ChannelEntropy, *beacon.EntropyGenerator, *beacon.Reactor, error) {
 
 	beacon.InitialiseMcl()
 	entropyGenerator := beacon.NewEntropyGenerator(&config.BaseConfig, config.Consensus, state.LastBlockHeight)
-	entropyChannel := make(chan types.ComputedEntropy, config.Consensus.EntropyChannelCapacity)
+	entropyChannel := make(chan types.ChannelEntropy, config.Consensus.EntropyChannelCapacity)
 	entropyGenerator.SetLogger(beaconLogger)
-	entropyGenerator.SetComputedEntropyChannel(entropyChannel)
+	entropyGenerator.SetEntropyChannel(entropyChannel)
 	if dkgRunner != nil {
 		dkgRunner.SetDKGCompletionCallback(entropyGenerator.SetNextAeonDetails)
 	}
@@ -613,7 +613,7 @@ func createBeaconReactor(
 		}
 	}
 	if len(state.LastComputedEntropy) != 0 {
-		entropyGenerator.SetLastComputedEntropy(types.ComputedEntropy{Height: state.LastBlockHeight, GroupSignature: state.LastComputedEntropy})
+		entropyGenerator.SetLastComputedEntropy(state.LastBlockHeight, state.LastComputedEntropy)
 	}
 
 	reactor := beacon.NewReactor(entropyGenerator, fastSync, blockStore)
@@ -769,7 +769,6 @@ func NewNode(config *cfg.Config,
 
 	// Create DKGRunner
 	dkgRunner := createDKGRunner(config, state, privValidator, logger, stateDB, specialTxHandler)
-	dkgRunner.AttachMetrics(drbMetrics)
 
 	// Make BeaconReactor
 	beaconLogger := logger.With("module", "beacon")
@@ -778,6 +777,11 @@ func NewNode(config *cfg.Config,
 	if err != nil {
 		return nil, errors.Wrap(err, "could not load aeon keys from file")
 	}
+
+	// Attach metrics
+	entropyGenerator.AttachMetrics(drbMetrics)
+	dkgRunner.AttachMetrics(drbMetrics)
+
 	consensusState.SetEntropyChannel(entropyChannel)
 	sw.AddReactor("BEACON", beaconReactor)
 
@@ -1332,7 +1336,19 @@ func createAndStartPrivValidatorSocketClient(
 		return nil, errors.Wrap(err, "failed to start private validator")
 	}
 
-	return pvsc, nil
+	// try to get a pubkey from private validate first time
+	pubKey := pvsc.GetPubKey()
+	if pubKey == nil {
+		return nil, errors.New("could not retrieve public key from private validator")
+	}
+
+	const (
+		retries = 50 // 50 * 100ms = 5s total
+		timeout = 100 * time.Millisecond
+	)
+	pvscWithRetries := privval.NewRetrySignerClient(pvsc, retries, timeout)
+
+	return pvscWithRetries, nil
 }
 
 // splitAndTrimEmpty slices s into all subslices separated by sep and returns a
