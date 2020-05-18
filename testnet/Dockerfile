@@ -27,7 +27,7 @@ RUN tar -C /usr/local -xzf go1.14.2.linux-amd64.tar.gz
 RUN export CGO_ENABLED=1 && \
     /usr/local/go/bin/go build -o build/tendermint ./cmd/tendermint/
 
-# ######### Finished building tendermint executbales ##############
+# ######### Finished building tendermint executables ##############
 FROM ubuntu:18.04
 
 RUN apt update && \
