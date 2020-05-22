@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/tendermint/tendermint/beacon"
+	"github.com/tendermint/tendermint/malicious"
 	"github.com/tendermint/tendermint/tx_extensions"
 
 	"github.com/pkg/errors"
@@ -210,6 +211,7 @@ type Node struct {
 	beaconReactor      *beacon.Reactor // reactor for signature shares
 	nativeLogCollector *beacon.NativeLoggingCollector
 	dkgRunner          *beacon.DKGRunner
+	messageMutator     *malicious.MessageMutator
 }
 
 func initDBs(config *cfg.Config, dbProvider DBProvider) (blockStore *store.BlockStore, stateDB dbm.DB, err error) {
@@ -638,7 +640,8 @@ func createDKGRunner(
 	privValidator types.PrivValidator,
 	logger log.Logger,
 	db dbm.DB,
-	handler tx_extensions.MessageHandler) (*beacon.DKGRunner, error) {
+	handler tx_extensions.MessageHandler,
+	mutator *malicious.MessageMutator) (*beacon.DKGRunner, error) {
 	if !config.Consensus.RunDKG {
 		return nil, nil
 	}
@@ -650,6 +653,7 @@ func createDKGRunner(
 	dkgRunner := beacon.NewDKGRunner(config.Consensus, config.ChainID(), db, privValidator, noiseKeys, state.LastBlockHeight)
 	dkgRunner.SetLogger(logger.With("module", "dkgRunner"))
 	dkgRunner.AttachMessageHandler(handler)
+	dkgRunner.SetMessageMutator(mutator)
 	return dkgRunner, nil
 }
 
@@ -782,8 +786,11 @@ func NewNode(config *cfg.Config,
 	// create the native log collector
 	nativeLogger := beacon.NewNativeLoggingCollector(logger)
 
+	// Create MessageMutator
+	messageMutator := malicious.NewMessageMutator(privValidator)
+
 	// Create DKGRunner
-	dkgRunner, err := createDKGRunner(config, state, privValidator, logger, stateDB, specialTxHandler)
+	dkgRunner, err := createDKGRunner(config, state, privValidator, logger, stateDB, specialTxHandler, messageMutator)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create dkgRunner")
 	}
@@ -873,6 +880,7 @@ func NewNode(config *cfg.Config,
 		beaconReactor:      beaconReactor,
 		nativeLogCollector: nativeLogger,
 		dkgRunner:          dkgRunner,
+		messageMutator:     messageMutator,
 	}
 	node.BaseService = *cmn.NewBaseService(logger, "Node", node)
 
@@ -1017,6 +1025,7 @@ func (n *Node) ConfigureRPC() {
 	rpccore.SetEventBus(n.eventBus)
 	rpccore.SetLogger(n.Logger.With("module", "rpc"))
 	rpccore.SetConfig(*n.config.RPC)
+	rpccore.SetMessageMutator(n.messageMutator)
 }
 
 func (n *Node) startRPC() ([]net.Listener, error) {
