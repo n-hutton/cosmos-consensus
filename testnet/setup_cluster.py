@@ -74,6 +74,7 @@ def get_docker_img_name():
 
 def build_docker_image(args):
     executable_full_path = os.path.abspath("build_docker_img.sh")
+    run_command("tendermint", f"testnet --v 1")
     run_command(executable_full_path, f"{DOCKER_IMG_NAME} {DOCKER_IMG_TAG}")
 
 # Note: this will also push the image
