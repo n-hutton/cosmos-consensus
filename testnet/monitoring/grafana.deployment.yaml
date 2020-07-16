@@ -1,8 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: grafana
+  name: grafana-deployment
+  labels:
+    app: grafana
+    purpose: example
 spec:
+  serviceName: graf
   replicas: 1
   selector:
     matchLabels:
