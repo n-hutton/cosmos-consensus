@@ -347,11 +347,12 @@ def main():
         push_docker_image(args)
         sys.exit(0)
 
-    # Note: the docker build needs files created here
-    create_files_for_validators(args.validators, args.log_level, args.config)
 
     # build the docker image
     if args.build_docker:
+        # Note: the docker build needs files created here (at least 1)
+        create_files_for_validators(1, args.log_level, args.config)
+
         build_docker_image(args)
 
         # optionally push
@@ -359,6 +360,8 @@ def main():
             print("pushing docker image")
             push_docker_image(args)
         sys.exit(0)
+
+    create_files_for_validators(args.validators, args.log_level, args.config)
 
     # At this point it is deploy-network mode
     if args.validators <= 0:
