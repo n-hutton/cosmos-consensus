@@ -192,7 +192,7 @@ func (entropyGenerator *EntropyGenerator) LoadEntropyKeyFiles(db dbm.DB, privVal
 
 					if err1 == nil {
 						// Push the complete aeon into the entropy generator
-						nextAeonDetails := loadAeonDetails(aeonFile, vals, privValidator)
+						nextAeonDetails, _ := loadAeonDetails(aeonFile, vals, privValidator)
 						if aeonDetails != nil && aeonDetails.End > nextAeonDetails.End {
 							return nil, fmt.Errorf("File %v contains out of order aeon keys. Previous aeon end %v, next aeon end %v",
 								fileToLoad, aeonDetails.End, nextAeonDetails.End)

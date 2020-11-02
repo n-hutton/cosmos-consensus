@@ -858,10 +858,10 @@ type DryRunSignature struct {
 
 // ValidateBasic for basic validity checking of aeon file
 func (dryRun *DryRunSignature) ValidateBasic() error {
-	err := dryRun.PublicInfo.ValidateBasic()
-	if err != nil {
-		return fmt.Errorf(err.Error())
-	}
+	//err := dryRun.PublicInfo.ValidateBasic()
+	//if err != nil {
+	//	return fmt.Errorf(err.Error())
+	//}
 	if len(dryRun.SignatureShare) == 0 || len(dryRun.SignatureShare) > types.MaxEntropyShareSize {
 		return fmt.Errorf("Invalid signature share size %v", len(dryRun.SignatureShare))
 	}

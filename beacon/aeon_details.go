@@ -13,6 +13,17 @@ import (
 	"github.com/tendermint/tendermint/types"
 )
 
+func newAeonExecUnit(keyType string, generator string, keys mcl_cpp.DKGKeyInformation, qual mcl_cpp.IntVector) mcl_cpp.BaseAeon {
+	switch keyType {
+	case mcl_cpp.GetBLS_AEON():
+		return mcl_cpp.NewBlsAeon(generator, keys, qual)
+	case mcl_cpp.GetGLOW_AEON():
+		return mcl_cpp.NewGlowAeon(generator, keys, qual)
+	default:
+		panic(fmt.Errorf("Unknown type %v", keyType))
+	}
+}
+
 // aeonDetails stores entropy generation details for each aeon
 type aeonDetails struct {
 	privValidator   types.PrivValidator
@@ -180,7 +191,7 @@ func loadAeonDetails(aeonDetailsFile *AeonDetailsFile, validators *types.Validat
 		keyType = mcl_cpp.GetAeonType()
 	}
 
-	aeonExecUnit := mcl_cpp.NewAeonExecUnit(keyType, aeonDetailsFile.PublicInfo.Generator, keys, qual)
+	aeonExecUnit := newAeonExecUnit(keyType, aeonDetailsFile.PublicInfo.Generator, keys, qual)
 	aeonDetails, err := newAeonDetails(privVal, aeonDetailsFile.PublicInfo.ValidatorHeight, aeonDetailsFile.PublicInfo.DKGID, validators, aeonExecUnit,
 		aeonDetailsFile.PublicInfo.Start, aeonDetailsFile.PublicInfo.End)
 	if err != nil {
