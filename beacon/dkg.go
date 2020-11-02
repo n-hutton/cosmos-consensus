@@ -736,7 +736,7 @@ func (dkg *DistributedKeyGeneration) checkDryRuns() bool {
 	aeonFile := &AeonDetailsFile{
 		PublicInfo: dkg.dryRunKeys[encodedOutput],
 	}
-	tempKeys := loadAeonDetails(aeonFile, &dkg.validators, dkg.privValidator)
+	tempKeys, _ := loadAeonDetails(aeonFile, &dkg.validators, dkg.privValidator)
 	for address, signature := range dkg.dryRunSignatures[encodedOutput] {
 		index, _ := tempKeys.validators.GetByAddress(crypto.Address(address))
 		if index < 0 {
@@ -836,6 +836,19 @@ func (dkg *DistributedKeyGeneration) shouldSubmitEvidence(index int) bool {
 }
 
 //-------------------------------------------------------------------------------------------
+
+// DKGOutput is struct for broadcasting dkg completion info
+type DKGOutput struct {
+	KeyType         string   `json:"key_type"`
+	GroupPublicKey  string   `json:"group_public_key"`
+	PublicKeyShares []string `json:"public_key_shares"`
+	Generator       string   `json:"generator"`
+	ValidatorHeight int64    `json:"validator_height"`
+	DKGID           int64    `json:"dkg_id"`
+	Qual            []int64  `json:"qual"`
+	Start           int64    `json:"start"`
+	End             int64    `json:"end"`
+}
 
 // DryRunSignature is struct publishing public dkg output with group signature
 type DryRunSignature struct {

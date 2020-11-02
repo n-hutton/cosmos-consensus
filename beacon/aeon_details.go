@@ -64,9 +64,9 @@ func newAeonDetails(newPrivValidator types.PrivValidator, valHeight int64, id in
 }
 
 func (ad *aeonDetails) checkKeys() error {
-	if !ad.aeonExecUnit.CheckKeys() {
-		return fmt.Errorf("Failed to deserialise mcl objects")
-	}
+	//if !ad.aeonExecUnit.CheckKeys() {
+	//	return fmt.Errorf("Failed to deserialise mcl objects")
+	//}
 
 	if ad.aeonExecUnit.CanSign() {
 		if ad.privValidator == nil {
@@ -145,10 +145,10 @@ func (aeonFile *AeonDetailsFile) IsForSamePeriod(other *AeonDetailsFile) bool {
 
 // ValidateBasic for basic validity checking of aeon file
 func (aeonFile *AeonDetailsFile) ValidateBasic() error {
-	err := aeonFile.PublicInfo.ValidateBasic()
-	if err != nil {
-		return fmt.Errorf(err.Error())
-	}
+	//err := aeonFile.PublicInfo.ValidateBasic()
+	//if err != nil {
+	//	return fmt.Errorf(err.Error())
+	//}
 	return nil
 }
 
