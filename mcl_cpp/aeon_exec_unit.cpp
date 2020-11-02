@@ -143,10 +143,12 @@ BlsAeon::BlsAeon(std::string const &filename): BaseAeon{filename}{
 BlsAeon::BlsAeon(std::string const &generator, DKGKeyInformation const &keys, std::vector<CabinetIndex> const &qual)
 : BaseAeon{keys, qual} {
   generator_ = generator;
+  CheckKeys();
 }
 // Constructor used beacon manager
 BlsAeon::BlsAeon(std::string generator, DKGKeyInformation keys, std::set<CabinetIndex> qual)
 : BaseAeon{generator, keys, qual} {
+  CheckKeys();
 }
 
 bool BlsAeon::CheckIndex(CabinetIndex index) const {
@@ -171,32 +173,19 @@ bool BlsAeon::CheckIndex(CabinetIndex index) const {
  *
  * @return Whether check succeeded or failed
  */
-bool BlsAeon::CheckKeys() const {
+void BlsAeon::CheckKeys() const {
   if (CanSign()) {
     mcl::PrivateKey temp_private_key;
-    if (!temp_private_key.FromString(aeon_keys_.private_key)) {
-      Log(LogLevel::ERROR, LOGGING_NAME, "BlsAeon can not deserialise private key "+aeon_keys_.private_key);
-      return false;
-    }
+    assert(temp_private_key.FromString(aeon_keys_.private_key));
   }
   mcl::GroupPublicKey temp_group_key;
-  if (!temp_group_key.FromString(aeon_keys_.group_public_key)) {
-    Log(LogLevel::ERROR, LOGGING_NAME, "BlsAeon can not deserialise group public key "+aeon_keys_.group_public_key);
-    return false;
-  }
+  assert(temp_group_key.FromString(aeon_keys_.group_public_key));
   for (auto i = 0; i < aeon_keys_.public_key_shares.size(); i++) {
      mcl::GroupPublicKey temp_key_share;
-     if (!temp_key_share.FromString(aeon_keys_.public_key_shares[i])) {
-       Log(LogLevel::ERROR, LOGGING_NAME, "BlsAeon can not deserialise index "+std::to_string(i)+" public key share "+aeon_keys_.public_key_shares[i]);
-       return false;
-     }
+     assert(temp_key_share.FromString(aeon_keys_.public_key_shares[i]));
   }
   mcl::GroupPublicKey generator;
-  if (!generator.FromString(generator_)) {
-    Log(LogLevel::ERROR, LOGGING_NAME, "BlsAeon can not deserialise generator "+generator_);
-    return false;
-  }
-  return true;
+  assert(generator.FromString(generator_));
 }
 
 /**
@@ -265,10 +254,12 @@ GlowAeon::GlowAeon(std::string const &generator_strs, DKGKeyInformation const &k
 
   generator_ = generators.first;
   generator_g1_ = generators.second;
+  CheckKeys();
 }
 
 GlowAeon::GlowAeon(std::string generator, std::string generator_g1, DKGKeyInformation keys, std::set<CabinetIndex> qual)
 : BaseAeon{generator, keys, qual}, generator_g1_{std::move(generator_g1)} {
+  CheckKeys();
 }
 
 /**

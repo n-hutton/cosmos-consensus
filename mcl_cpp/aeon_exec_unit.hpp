@@ -51,7 +51,7 @@ public:
   virtual bool CheckIndex(CabinetIndex index) const = 0;
   virtual Signature ComputeGroupSignature(std::map <CabinetIndex, Signature> const &signature_shares) const = 0;
   virtual std::string Name() const = 0;
-  virtual bool CheckKeys() const = 0;
+  virtual void CheckKeys() const = 0;
 
   bool VerifyGroupSignature(MessagePayload const &message, Signature const &signature) const;
 
@@ -88,7 +88,7 @@ public:
   Signature ComputeGroupSignature(std::map <CabinetIndex, Signature> const &signature_shares) const override;
   bool CheckIndex(CabinetIndex index) const override;
   std::string Name() const override;
-  bool CheckKeys() const override;
+  void CheckKeys() const override;
 };
 
 class GlowAeon : public BaseAeon {
@@ -104,7 +104,7 @@ public:
   bool CheckIndex(CabinetIndex index) const override;
   std::string Generator() const override;
   std::string Name() const override;
-  bool CheckKeys() const override;
+  void CheckKeys() const override;
 
 private:
   std::string generator_g1_;
